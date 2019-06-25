@@ -42,17 +42,19 @@ class PreProcessing:
             clear_output(wait=True)
             print('step 1: iteration {}  out of {}'.format(index, len(date_time)))
 
-        return dictionary, date_time
+        return dictionary
 
-    def add_column(self):
-        dictionary, date_time = self.find_date_type()
+    def add_column(self, dictionary):
         date_type = []
         keys = list(dictionary.keys())
         for index, i in enumerate(self.df[self.time_col].tolist()):
+
             clear_output(wait=True)
             print('step 1: iteration {}  out of {}'.format(index, len(self.df[self.time_col].tolist())))
+
             for j in keys:
                 if i == j:
-                    date_type.append(list(dictionary.get(i)))
-        df = pd.concat([self.df, pd.DataFrame(date_type, columns=['data_type'])], axis=1)
+                    date_type.append(dictionary.get(j))
+
+        df = pd.concat([self.df, pd.DataFrame(date_type, columns='data_type')], axis=1)
         return df
