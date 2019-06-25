@@ -11,6 +11,20 @@ class DataLoader:
                  features, ten_col, error,
                  error_col, data_split=True, sample_size=500,
                  shuffle=True, batch_size=64):
+        """A class for pre-processing, generating data for time series analysis
+
+
+        filename-str: path to the csv format data file
+        time_col-str: column name of time steps
+        onehot_features-list of str: features that needs to be one hot encoded
+        features-list of str: list of features to be selected
+        ten_col-str: column name that contains tenant ID
+        error-list of str: error codes to be converted
+        error_col-str: column name of which contains error codes
+        data_split-bool: whether the data needs to be split, default True
+        sample_size-int: sample size of the split data, default 500
+        shuffle-bool: whether needs to shuffle in the batch generator, default True
+        batch_size: batch size of each output of the batch generator, default 64"""
 
         self.df = pd.read_table(filename)
         self.time_col = time_col
