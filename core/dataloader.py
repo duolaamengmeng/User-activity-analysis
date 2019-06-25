@@ -1,13 +1,14 @@
 from __future__ import division
-import pandas as pd
+
 import numpy as np
-from sklearn.preprocessing import OneHotEncoder
-from scipy.sparse import hstack, csc_matrix
+import pandas as pd
 from IPython.display import clear_output
+from scipy.sparse import hstack, csc_matrix
+from sklearn.preprocessing import OneHotEncoder
 
 
 class DataLoader:
-    def __init__(self, filename, time_col, onehot_features,
+    def __init__(self, filename, new_buyers, time_col, onehot_features,
                  features, ten_col, error,
                  error_col, data_split=True, sample_size=500,
                  shuffle=True, batch_size=64):
@@ -15,6 +16,7 @@ class DataLoader:
 
 
         filename-str: path to the csv format data file
+        new_buyers-list of str- contains tenant ID of newly purchased tenants
         time_col-str: column name of time steps
         onehot_features-list of str: features that needs to be one hot encoded
         features-list of str: list of features to be selected
@@ -27,6 +29,7 @@ class DataLoader:
         batch_size: batch size of each output of the batch generator, default 64"""
 
         self.df = pd.read_table(filename)
+        self.new_buyers = new_buyers
         self.time_col = time_col
         self.onehot_features = onehot_features
         self.features = features
