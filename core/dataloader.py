@@ -81,11 +81,11 @@ class DataLoader:
         # determine the time step list
         time_bin = self.find_time_bin()
         data = []
-
+        total_iteration = len(time_bin)
         # iterate through each timestep, create a new dimension for time step
         for indx, i in enumerate(time_bin):
             clear_output(wait=True)
-            print('step 1: iteration {}  out of {}'.format(indx, len(time_bin)))
+            print('step 1: iteration {}  out of {}'.format(indx, total_iteration))
             buff = []
             for j, item in enumerate(array):
                 if item.toarray()[0][time_col] == i:
@@ -96,10 +96,11 @@ class DataLoader:
     def make3dts(self, lst):
         ten = self.find_index(self.ten_col)
         unique_ten = list(set(self.df.iloc[:, ten]))
+        total_iteration = len(lst)
         for j_index, j in enumerate(lst):  # iterate time step
 
             clear_output(wait=True)
-            print('step 2: iteration {}  out of {}'.format(j_index, len(lst)))
+            print('step 2: iteration {}  out of {}'.format(j_index, total_iteration))
 
             cpp = []
             for i in unique_ten:  # iterate unique companies

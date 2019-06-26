@@ -47,14 +47,16 @@ class PreProcessing:
     def add_column(self, dictionary):
         date_type = []
         keys = list(dictionary.keys())
+        total_iteration = len(self.df[self.time_col].tolist())
         for index, i in enumerate(self.df[self.time_col].tolist()):
 
-            clear_output(wait=True)
-            print('step 1: iteration {}  out of {}'.format(index, len(self.df[self.time_col].tolist())))
+            if index % 1000 == 999:
+                clear_output(wait=True)
+                print('step 1: iteration {}  out of {}'.format(index, total_iteration))
 
             for j in keys:
                 if i == j:
-                    date_type.append(dictionary.get(j))
+                    date_type.append(dictionary[j])
 
-        df = pd.concat([self.df, pd.DataFrame(date_type, columns='data_type')], axis=1)
+        df = pd.concat([self.df, pd.DataFrame(date_type, columns=['date_type'])], axis=1)
         return df
