@@ -75,6 +75,8 @@ class DataLoader:
         return data
 
     def time(self, array):
+        """This method reshape the dataset from (BatchSize, FeatureSpace)
+        to (TimeStep,-1.FeatureSpace)"""
         # find the column index of time feature
         time_col = self.find_index(self.time_col)
 
@@ -94,6 +96,8 @@ class DataLoader:
         return data
 
     def make3dts(self, lst):
+        """This method reshape the dataset from (TimeStep,-1.FeatureSpace)
+        to (TimeStep,Company,-1,FeatureSpace)"""
         ten = self.find_index(self.ten_col)
         unique_ten = list(set(self.df.iloc[:, ten]))
         total_iteration = len(lst)
@@ -116,6 +120,10 @@ class DataLoader:
         return lst
 
     def sum_all(self, data):
+        """This method reshape the dataset to (TimeStep, Company, FeatureSpace)
+        by combines all information of each (TimeStep, Company) into a single entry.
+        As for now, the combination is a matrix dot product of (vector 'num_of_operation' and
+        feature matrix) of each (TimeStep, Company)"""
         d = []
         for indx, i in enumerate(data):
             buff = []
@@ -153,6 +161,7 @@ class DataLoader:
             yield [d[start: end] for d in all_data]
 
     def all_data(self):
+        """This is the main function to call to retrieve the whole processed 3d time series"""
         if self.data_split:
             self.df = self.df.sample(n=self.sample_size)
         data = self.pre_processing()
