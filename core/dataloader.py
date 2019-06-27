@@ -1,17 +1,22 @@
 from __future__ import division
-
+import time
 import numpy as np
 import pandas as pd
 from IPython.display import clear_output
-from scipy.sparse import hstack, csc_matrix
+from scipy.sparse import hstack, csc_matrix, csr_matrix
 from sklearn.preprocessing import OneHotEncoder
+from scipy import sparse
+from multiprocessing import Pool
+from itertools import product
+import tqdm
+from functools import partial
 
 
 class DataLoader:
     def __init__(self, filename, new_buyers, time_col, onehot_features,
                  features, ten_col, error,
-                 error_col, data_split=True, sample_size=500,
-                 shuffle=True, batch_size=64):
+                 error_col, no_processor, data_split=False, sample_size=50000,
+                 shuffle=True, batch_size=64, multicore=False):
         """A class for pre-processing, generating data for time series analysis
 
 
@@ -40,6 +45,9 @@ class DataLoader:
         self.sample_size = sample_size
         self.shuffle = shuffle
         self.batch_size = batch_size
+        self.no_processor = no_processor
+        self.multicore = multicore
+
 
     def create_error(self):
         for i, item in enumerate(self.df[self.error_col]):
@@ -74,26 +82,67 @@ class DataLoader:
         data = hstack([data[:, exclude].astype(float), one_hot_value])
         return data
 
-    def time(self, array):
+    def time(self, **kwargs):
         """This method reshape the dataset from (BatchSize, FeatureSpace)
         to (TimeStep,-1.FeatureSpace)"""
         # find the column index of time feature
+        array = self.pre_processing().tocsr()
         time_col = self.find_index(self.time_col)
 
         # determine the time step list
-        time_bin = self.find_time_bin()
-        data = []
-        total_iteration = len(time_bin)
+        time_bin = list(self.find_time_bin())
+
+        ################multicore processing##################
+        if self.multicore:
+            processes = self.no_processor
+            step = len(time_bin) // self.no_processor
+
+            data = time_bin[processor_no * step:processor_no * step + 1]
+
+        else:
+            data = time_bin
+        ##############################################
+        total_iteration = len(data)
+        result = []
         # iterate through each timestep, create a new dimension for time step
-        for indx, i in enumerate(time_bin):
+        for indx, i in enumerate(data):
+            if indx == 0:
+                t = time.time()
             clear_output(wait=True)
             print('step 1: iteration {}  out of {}'.format(indx, total_iteration))
+            print('time ultilized: {}'.format(time.time() - t))
+            t = time.time()
             buff = []
             for j, item in enumerate(array):
-                if item.toarray()[0][time_col] == i:
-                    buff.append(array[j, :])
-            data.append(buff)
-        return data
+
+                # if j%10000 == 9999:
+                #     print('step 1: iteration {}  out of {}'.format(indx, total_iteration))
+                #     print(j)
+                #
+                #     clear_output(wait=True)
+                if item.data[time_col] == i:  # get only value, preventing from making another matrix
+                    buff.append(item)
+
+            result.append(buff)
+
+        # for j, item in enumerate(array):
+        #
+        #     if j == 0:
+        #         t = time.time()
+        #     if j%10000 == 9999:
+        #         clear_output(wait=True)
+        #         print('step 1: iteration {}  out of {}'.format(j, total_iteration))
+        #
+        #         print('time ultilized: {}'.format(time.time() - t))
+        #         t = time.time()
+        #     buff = []
+        #     for indx, i in enumerate(data):
+        #
+        #         if item.data[time_col] == i:#get only value, preventing from making another matrix
+        #             buff.append(item)
+        #
+        #     result.append(buff)
+        # return result
 
     def make3dts(self, lst):
         """This method reshape the dataset from (TimeStep,-1.FeatureSpace)
@@ -110,7 +159,7 @@ class DataLoader:
             for i in unique_ten:  # iterate unique companies
                 cp = []
                 for k_index, k in enumerate(j):  # iterate each element in time step
-                    if int(k.toarray()[0][ten]) == int(i):
+                    if int(k.data[ten]) == int(i):
                         cp.append(lst[j_index][k_index])
                     else:
                         cp.append(csc_matrix(np.zeros([k.shape[1]])))
@@ -120,7 +169,7 @@ class DataLoader:
         return lst
 
     def sum_all(self, data):
-        """This method reshape the dataset to (TimeStep, Company, FeatureSpace)
+        """This method reshapes the dataset to (TimeStep, Company, FeatureSpace)
         by combines all information of each (TimeStep, Company) into a single entry.
         As for now, the combination is a matrix dot product of (vector 'num_of_operation' and
         feature matrix) of each (TimeStep, Company)"""
@@ -160,17 +209,24 @@ class DataLoader:
             batch_count += 1
             yield [d[start: end] for d in all_data]
 
+
     def all_data(self):
         """This is the main function to call to retrieve the whole processed 3d time series"""
         if self.data_split:
             self.df = self.df.sample(n=self.sample_size)
+
         data = self.pre_processing()
-        matrix = data.tocsc()
-
-        matrix = self.time(matrix)
-        a = self.make3dts(matrix)
-
-        a = np.array(a)
-        a = a.transpose(1, 0)
-        b = self.sum_all(a)
-        return b
+        matrix = data.tocsr()
+        if self.multicore:
+            pool = Pool(processes=7)  # start 7 worker processes
+            inputs = [[np.array(matrix), i] for i in range(self.no_processor)]
+            # inputs = [i for i in range(self.no_processor)]
+            result = pool.starmap(self.time, inputs)
+            pool.close()
+        else:
+            matrix = self.time()
+        # a = self.make3dts(matrix)
+        # a = np.array(a)
+        # a = a.transpose(1, 0)
+        # b = self.sum_all(a)
+        return matrix
