@@ -6,13 +6,13 @@ from IPython.display import clear_output
 
 
 class PreProcessing:
-    def __init__(self, filename, time_col):
+    def __init__(self, filename, time_col, unix_time_stamp=False):
         self.df = pd.read_table(filename)
         self.time_col = time_col
         self.time_set = list(set(self.df[self.time_col].tolist()))
+        self.unix_time_stamp = unix_time_stamp
 
     def pre_processing(self):
-
         date_time = []
         for index, i in enumerate(self.time_set):
             ts = int(i)
@@ -21,8 +21,10 @@ class PreProcessing:
 
     def find_date_type(self):
         server_url = "http://api.goseek.cn/Tools/holiday?date="
-        date_time = self.pre_processing()
-
+        if self.unix_time_stamp:
+            date_time = self.pre_processing()
+        else:
+            date_time = list(self.time_set)
         dictionary = {}
 
         for index, date in enumerate(date_time):
