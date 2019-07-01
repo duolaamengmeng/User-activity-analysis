@@ -3,20 +3,12 @@ import time
 import numpy as np
 import pandas as pd
 from IPython.display import clear_output
-from scipy.sparse import hstack, csc_matrix, csr_matrix
-from sklearn.preprocessing import OneHotEncoder
-from scipy import sparse
-from multiprocessing import Pool
-from itertools import product
-import tqdm
-from functools import partial
+from librosa.feature import mfcc
 
 
 class DataLoader:
-    def __init__(self, filename, new_buyers, time_col, onehot_features,
-                 features, ten_col, error,
-                 error_col, no_processor, data_split=False, sample_size=50000,
-                 shuffle=True, batch_size=64, multicore=False):
+    def __init__(self, filename, time_col, features, ten_col,
+                 shuffle=True, batch_size=64):
         """A class for pre-processing, generating data for time series analysis
 
 
@@ -33,26 +25,12 @@ class DataLoader:
         shuffle-bool: whether needs to shuffle in the batch generator, default True
         batch_size: batch size of each output of the batch generator, default 64"""
 
-        self.df = pd.read_table(filename)
-        self.new_buyers = new_buyers
+        self.df = filename
         self.time_col = time_col
-        self.onehot_features = onehot_features
         self.features = features
         self.ten_col = ten_col
-        self.error_col = error_col
-        self.error = error
-        self.data_split = data_split
-        self.sample_size = sample_size
         self.shuffle = shuffle
         self.batch_size = batch_size
-        self.no_processor = no_processor
-        self.multicore = multicore
-
-    def create_error(self):
-        for i, item in enumerate(self.df[self.error_col]):
-            if item in self.error:
-                self.df[self.error_col][i] = 'error'
-        return self.df
 
     def find_time_bin(self):
         """returns a list containing time-steps"""
@@ -67,8 +45,6 @@ class DataLoader:
         """takes a data frame,
         returns a one hot encoded Sci-py sparse matrix"""
         # get features
-        if self.data_split:
-            self.split()
         self.df = self.df[self.features]
         data = np.array(self.df)
 
@@ -137,11 +113,19 @@ class DataLoader:
                 multiplier = []
 
                 for k in item:
-                    multiplier.append(k[1])
+                    multiplier.append(int(k[1]))
 
                 buff.append(sum(multiplier))
             d.append(buff)
         return d
 
-    def split(self):
-        self.df = self.df.sample(n=self.sample_size)
+    def frequency_feature(self):
+        data = np.array(self.sum_all())
+        data = np.transpose(data, (1, 0))
+        data_mfccs = []
+        for i in data:
+            sig = i / max(abs(i))
+            data_mfccs.append(mfcc(sig, sr=10, n_mfcc=2, hop_length=10))
+        data_mfccs = np.array(data_mfccs)
+        # data_mfccs = np.transpose(data_mfccs,(0,2,1))
+        return data_mfccs

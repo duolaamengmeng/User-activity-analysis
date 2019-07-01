@@ -7,7 +7,7 @@ from IPython.display import clear_output
 
 class PreProcessing:
     def __init__(self, filename, time_col, unix_time_stamp=False):
-        self.df = pd.read_table(filename)
+        self.df = filename
         self.time_col = time_col
         self.time_set = list(set(self.df[self.time_col].tolist()))
         self.unix_time_stamp = unix_time_stamp
