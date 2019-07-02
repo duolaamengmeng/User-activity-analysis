@@ -41,15 +41,21 @@ class PreProcessing:
 
         :return: a dictionary {unique_dates:date_type}
         """
+
         server_url = "http://api.goseek.cn/Tools/holiday?date="
+
+        # if time format is already '%Y%m%d', no need to convert
         if self.unix_time_stamp:
             date_time = self.pre_processing()
         else:
             date_time = list(self.time_set)
-        dictionary = {}
 
+        # create an empty dictionary
+        dictionary = {}
         for index, date in enumerate(date_time):
             vop_url_request = Request(server_url + date)
+
+            # allow maximum of 10 tries
             tries = 10
             for i in range(tries):
                 try:
@@ -60,7 +66,8 @@ class PreProcessing:
                     else:
                         raise
                 break
-
+            # append keys and value pairs to dictionary
+            # {date,date_type}
             dictionary.update({self.time_set[index]: json.loads(vop_response.read())['data']})
             clear_output(wait=True)
             print('step 1: iteration {}  out of {}'.format(index, len(date_time)))
@@ -69,24 +76,30 @@ class PreProcessing:
 
     def add_column(self):
         """
-        this method uses a dictionary as input (output of self.find_date_type),
-        adds feature date_type to the original DataFrame
+        This method uses a dictionary as input (output of self.find_date_type),
+        adds feature date_type to the original DataFrame.
 
         :return: a DataFrame with date_type column
         """
         dictionary = self.find_date_type()
+
+        # Make an empty list to store date type
         date_type = []
         keys = list(dictionary.keys())
         total_iteration = len(self.df[self.time_col].tolist())
-        for index, i in enumerate(self.df[self.time_col].tolist()):
 
+        # iterate through time column
+        for index, i in enumerate(self.df[self.time_col].tolist()):
+            # Print progress every 1000 iterations
             if index % 1000 == 999:
                 clear_output(wait=True)
                 print('step 1: iteration {}  out of {}'.format(index, total_iteration))
 
+            # iterate through keys (unique dates) in the dictionary
+            # if the date in time_col == date in dictionary, append date type to the empty list
             for j in keys:
                 if i == j:
                     date_type.append(dictionary[j])
-
+        # Finally concatenate the empty list with the original DataFrame on axis 1
         df = pd.concat([self.df, pd.DataFrame(date_type, columns=['date_type'])], axis=1)
         return df
