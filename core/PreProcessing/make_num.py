@@ -7,6 +7,17 @@ from progress.bar import Bar
 
 class AddNum:
     def __init__(self, file_path, filename, features, unique_ten_path):
+        """
+        This class takes a Json file, transform the instances from individual
+        operations to users, column 'action' which describes the number of actions
+        of a user in a day is generated.
+
+        :param file_path: path where the files are being saved
+        :param filename: name of the individual file in Json format
+        :param features: features to be selected, in a list str format
+        :param unique_ten_path: path of the file that contains tenants which will be selected
+
+        """
 
         with open('{}/{}'.format(file_path, filename)) as data:
             self.df = pd.read_json(data, lines=True)
@@ -54,7 +65,7 @@ class AddNum:
             actions = 0
             all_index = []
             for indexJ, j in enumerate(all_users):
-                if int(i) == int(j):
+                if i == j:
                     actions += 1
                     all_index.append(indexJ)
             data.append([i, actions, array[all_index[0], ten_col], self.get_time()])

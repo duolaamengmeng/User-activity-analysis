@@ -7,6 +7,21 @@ from IPython.display import clear_output
 
 class PreProcessing:
     def __init__(self, filename, time_col, unix_time_stamp=False):
+        """
+        this class takes a DataFrame and its time column name as input,
+        requests the date type on the server "http://api.goseek.cn/Tools/holiday?date="
+        , makes a new column for the DataFrame which describes date type.
+
+        :param filename: a DataFrame
+        :param time_col: the name of the column that records time stamp in str
+        :param unix_time_stamp: whether the format of time_col is in unix time stamp, bool
+
+        正常工作日对应结果为 0,
+        法定节假日对应结果为 1,
+        节假日调休补班对应的结果为 2，
+        休息日对应结果为 3
+
+        """
         self.df = filename
         self.time_col = time_col
         self.time_set = list(set(self.df[self.time_col].tolist()))
@@ -20,6 +35,12 @@ class PreProcessing:
         return date_time
 
     def find_date_type(self):
+        """
+        this method request date type from server, makes a dictionary
+        that has every unique date and its date type pair
+
+        :return: a dictionary {unique_dates:date_type}
+        """
         server_url = "http://api.goseek.cn/Tools/holiday?date="
         if self.unix_time_stamp:
             date_time = self.pre_processing()
@@ -46,7 +67,14 @@ class PreProcessing:
 
         return dictionary
 
-    def add_column(self, dictionary):
+    def add_column(self):
+        """
+        this method uses a dictionary as input (output of self.find_date_type),
+        adds feature date_type to the original DataFrame
+
+        :return: a DataFrame with date_type column
+        """
+        dictionary = self.find_date_type()
         date_type = []
         keys = list(dictionary.keys())
         total_iteration = len(self.df[self.time_col].tolist())

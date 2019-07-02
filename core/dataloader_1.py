@@ -9,13 +9,13 @@ from librosa.feature import mfcc
 class DataLoader:
     def __init__(self, filename, time_col, features, ten_col,
                  shuffle=True, batch_size=64):
-        """A class for pre-processing, generating data for time series analysis
+        """
+        A class for pre-processing, generating data for time series analysis
 
 
-        filename-str: path to the csv format data file
-        new_buyers-list of str- contains tenant ID of newly purchased tenants
-        time_col-str: column name of time steps
-        onehot_features-list of str: features that needs to be one hot encoded
+        :param filename: path to the csv format data file
+        :param time_col: column name of time steps
+        :param onehot_features: features that needs to be one hot encoded -list of str
         features-list of str: list of features to be selected
         ten_col-str: column name that contains tenant ID
         error-list of str: error codes to be converted
@@ -23,7 +23,8 @@ class DataLoader:
         data_split-bool: whether the data needs to be split, default True
         sample_size-int: sample size of the split data, default 500
         shuffle-bool: whether needs to shuffle in the batch generator, default True
-        batch_size: batch size of each output of the batch generator, default 64"""
+        batch_size: batch size of each output of the batch generator, default 64
+        """
 
         self.df = filename
         self.time_col = time_col
