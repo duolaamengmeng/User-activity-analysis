@@ -59,7 +59,7 @@ class AddNum:
         array = np.array(self.df)
         data = []
         ten_col = self.find_index('instance_id')
-
+        date = self.get_time()
         bar = Bar('Add Column', max=len(users))
         for index, i in enumerate(users):
             actions = 0
@@ -68,7 +68,7 @@ class AddNum:
                 if i == j:
                     actions += 1
                     all_index.append(indexJ)
-            data.append([i, actions, array[all_index[0], ten_col], self.get_time()])
+            data.append([i, actions, array[all_index[0], ten_col], date])
             bar.next()
         bar.finish()
         return data

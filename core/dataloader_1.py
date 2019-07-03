@@ -35,7 +35,7 @@ class DataLoader:
 
     def find_time_bin(self):
         """returns a list containing time-steps"""
-        return set(self.df[self.time_col])
+        return sorted(list(set(self.df[self.time_col])), key=int)
 
     def find_index(self, col_name):
         """ enters a column name in string format,
@@ -54,7 +54,7 @@ class DataLoader:
     def time(self):
         array = self.pre_processing()
         time_col = self.find_index(self.time_col)
-        time_bin = list(self.find_time_bin())
+        time_bin = self.find_time_bin()
         total_iteration = len(time_bin)
         result = []
         # iterate through each timestep, create a new dimension for time step
@@ -98,7 +98,7 @@ class DataLoader:
 
                 cpp.append(cp)
             lst[j_index] = cpp
-        return lst
+        return lst, unique_ten
 
     def sum_all(self):
         """This method reshapes the dataset to (TimeStep, Company, FeatureSpace)
@@ -106,7 +106,7 @@ class DataLoader:
         As for now, the combination is a matrix dot product of (vector 'num_of_operation' and
         feature matrix) of each (TimeStep, Company)"""
 
-        data = self.make3dts()
+        data, unique_ten = self.make3dts()
         d = []
         for indx, i in enumerate(data):
             buff = []
@@ -118,7 +118,7 @@ class DataLoader:
 
                 buff.append(sum(multiplier))
             d.append(buff)
-        return d
+        return d, unique_ten
 
     def frequency_feature(self):
         data = np.array(self.sum_all())

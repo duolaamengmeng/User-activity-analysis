@@ -1,21 +1,25 @@
 from make_num import AddNum
 import os
 import numpy as np
-from multiprocessing import Process, Queue
 
 
 def loop(file_path, feature, unique_ten_path):
-    file_names = os.listdir(file_path)
-    print(file_names)
-    for index, i in enumerate(file_names):
-        print('file No.{} out of {}'.format(index, len(file_names)))
+    file_names = sorted(os.listdir(file_path))
+
+    print(file_names[401:])
+    for index, i in enumerate(file_names[401:]):
+        print('file No.{} out of {}'.format(index, len(file_names[401:])))
         d = AddNum(file_path, filename=i, features=feature, unique_ten_path=unique_ten_path)
         da = d.add()
         if index == 0:
             data = da
         else:
-            data = np.concatenate([data, da], axis=0)
-        np.save('data.npy', data)
+            try:
+                data = np.concatenate([data, da], axis=0)
+            except:
+                data = data
+
+        np.save('data_1.npy', data)
     return data
 
 
