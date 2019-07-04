@@ -43,8 +43,10 @@ class DataLoader:
         return self.df.columns.tolist().index(col_name)
 
     def pre_processing(self):
-        """takes a data frame,
-        returns a one hot encoded Sci-py sparse matrix"""
+        """
+        select desired features
+        :return: a numpy array
+        """
         # get features
         self.df = self.df[self.features]
         data = np.array(self.df)
