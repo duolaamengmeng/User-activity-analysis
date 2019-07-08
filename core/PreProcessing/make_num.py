@@ -27,9 +27,9 @@ class AddNum:
     def pre_processing(self):
         self.df = self.df[self.features]
         array = np.array(self.df)
-
-        ten_set = np.array(list(set(self.unique_ten['instance_id'].tolist())), dtype=int)
+        self.unique_ten['instance_id'] = pd.to_numeric(self.unique_ten['instance_id'])
         instances = self.df['instance_id'].tolist()
+        ten_set = set(self.unique_ten['instance_id'].tolist())
         data = []
         bar = Bar('Pre-process', max=len(instances))
         for index, i in enumerate(instances):
@@ -53,14 +53,14 @@ class AddNum:
     def add(self):
         self.pre_processing()
         print('pre-process finished')
-        users = list(set(self.df['user_id'].tolist()))
+        users = set(self.df['user_id'].tolist())
         all_users = self.df['user_id'].tolist()
         all_ten = self.df['instance_id'].tolist()
         array = np.array(self.df)
         data = []
         ten_col = self.find_index('instance_id')
         date = self.get_time()
-        bar = Bar('Add Column', max=len(users))
+        bar = Bar('Add Column', max=len(list(users)))
         for index, i in enumerate(users):
             actions = 0
             all_index = []
@@ -68,7 +68,10 @@ class AddNum:
                 if i == j:
                     actions += 1
                     all_index.append(indexJ)
+
+            # [userId, #of actions, instanceId, date]
             data.append([i, actions, array[all_index[0], ten_col], date])
             bar.next()
         bar.finish()
         return data
+

@@ -8,8 +8,8 @@ import matplotlib.pyplot as plt
 
 
 def process(file_path, num_of_work_day, tenant_path):
-    data = np.load(file_path)
-    df = pd.DataFrame(data, columns=['userId', 'actions', 'instanceId', 'date'])
+    d = np.load(file_path)
+    df = pd.DataFrame(d, columns=['userId', 'actions', 'instanceId', 'date'])
     pre_process = PreProcessing(df, 'date')
     df = pre_process.add_column()
     s = SetYear(df=df,
