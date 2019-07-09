@@ -21,6 +21,11 @@ class SetYear:
                                    int(time.mktime(time.strptime(self.time_table[i, 1], '%Y/%m/%d %H:%M')))})
         return dictionary
 
+    def find_index(self, col_name):
+        """ enters a column name in string format,
+        returns the index of that feature in int"""
+        return self.df.columns.tolist().index(col_name)
+
     def unix_time(self):
         df = self.df
         # get
@@ -66,15 +71,17 @@ class SetYear:
         dictionary = self.makedict()
         array = np.array(df)
         print('start step 2')
-        t = time.time()
+
+        date_col = self.find_index('date')
+        ten_col = self.find_index('instance_id')
 
         def build(i):
             for key in dictionary:
-                if str(i[2]) == str(key):
+                if str(i[ten_col]) == str(key):
                     return math.ceil((int(
-                        i[3]) - int(dictionary[key])) / 86400)
+                        i[date_col]) - int(dictionary[key])) / 86400)
 
         result = list(map(build, array))
-        array[:, 3] = result
+        array[:, date_col] = result
 
         return array

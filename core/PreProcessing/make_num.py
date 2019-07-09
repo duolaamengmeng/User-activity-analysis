@@ -68,14 +68,13 @@ class AddNum:
         date = self.get_time()
         # ignore
 
+
         # select desirable columns
         iterator = np.array([array[:, i] for i in [ten_col, user_col, date_col]]).T
         dict = {}
-        sep = ','
         bar = Bar('Add Column', max=len(list(iterator)))
         for i in iterator:
-
-            key = str(i[0]) + sep + str(i[1]) + sep + str(i[2])
+            key = (i[0], i[1], i[2])
             if key in dict.keys():
                 dict[key] += 1
             else:
@@ -99,8 +98,7 @@ class AddNum:
         # data = [[key, dictionary[key]] for key in dictionary]
         data = []
         for key in dict:
-            list1 = key.split(sep)
-            data.append(list1.append(dict[key]))
+            data.append([key, dict[key]])
 
         return data
 

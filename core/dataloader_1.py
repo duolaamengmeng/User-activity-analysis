@@ -1,7 +1,8 @@
 from __future__ import division
+
 import time
+
 import numpy as np
-import pandas as pd
 from IPython.display import clear_output
 from librosa.feature import mfcc
 
