@@ -9,13 +9,14 @@ def loop(file_path, feature, unique_ten_path):
     for index, i in enumerate(file_names):
         print('file No.{} out of {}'.format(index, len(file_names)))
         d = AddNum(file_path, filename=i, features=feature, unique_ten_path=unique_ten_path)
-        da = d.add()
+        temp = d.add()
         if index == 0:
             # initialization
-            data = da
+            data = temp
         else:
             try:
-                data = np.concatenate([data, da], axis=0)
+                data = np.concatenate([data, temp], axis=0)
+
             except:
                 data = data
 

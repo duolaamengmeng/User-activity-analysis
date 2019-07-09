@@ -38,6 +38,7 @@ class AddNum:
             bar.next()
         bar.finish()
         self.df = pd.DataFrame(data, columns=self.features)
+        self.df['date'] = self.get_time()
 
     def find_index(self, col_name):
         """ enters a column name in string format,
@@ -53,25 +54,53 @@ class AddNum:
     def add(self):
         self.pre_processing()
         print('pre-process finished')
+        # unique users
         users = set(self.df['user_id'].tolist())
+        # all users
         all_users = self.df['user_id'].tolist()
-        all_ten = self.df['instance_id'].tolist()
+        # data table
         array = np.array(self.df)
         data = []
-        ten_col = self.find_index('instance_id')
+        # column index that stores instanceId
+        ten_col, user_col, date_col = self.find_index('instance_id'), self.find_index('user_id'), self.find_index(
+            'date')
+        # date, same across all instances
         date = self.get_time()
-        bar = Bar('Add Column', max=len(list(users)))
-        for index, i in enumerate(users):
-            actions = 0
-            all_index = []
-            for indexJ, j in enumerate(all_users):
-                if i == j:
-                    actions += 1
-                    all_index.append(indexJ)
+        # ignore
 
-            # [userId, #of actions, instanceId, date]
-            data.append([i, actions, array[all_index[0], ten_col], date])
+        # select desirable columns
+        iterator = np.array([array[:, i] for i in [ten_col, user_col, date_col]]).T
+        dict = {}
+        sep = ','
+        bar = Bar('Add Column', max=len(list(iterator)))
+        for i in iterator:
+
+            key = str(i[0]) + sep + str(i[1]) + sep + str(i[2])
+            if key in dict.keys():
+                dict[key] += 1
+            else:
+                dict[key] = 1
             bar.next()
         bar.finish()
+        # # iterate unique user
+        # for index, i in enumerate(users):
+        #     actions = 0
+        #     all_index = []
+        #     # iterate through the whole data set
+        #     for indexJ, j in enumerate(all_users):
+        #         if i == j:
+        #             actions += 1
+        #             all_index.append(indexJ)
+
+        # [userId, #of actions, instanceId, date]
+        # data.append([i, actions, array[all_index[0], ten_col], date])
+        # bar.next()
+        # bar.finish()
+        # data = [[key, dictionary[key]] for key in dictionary]
+        data = []
+        for key in dict:
+            list1 = key.split(sep)
+            data.append(list1.append(dict[key]))
+
         return data
 
