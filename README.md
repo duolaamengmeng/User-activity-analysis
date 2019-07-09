@@ -1,15 +1,19 @@
 # Project Title
+An Data-driven Approach of customer loyalty prediction
 User activity analysis
 
-
-## Getting Started
-
-
+# Motivations
+Many studies have shown that good customer loyalty consistitues greatly on an organization's profitability. Gross income takes a great hit every time a customer is lost; , it is up to tenth of times more expensive to earn a new customer than saving an existing one. This project attemps to make an innovative Data-driven approach to predict customer's loyalty.
 
 
 
 
-## Deployment
+
+## Methods
+
+
+
+## Current State and Todo List
 
 
 
