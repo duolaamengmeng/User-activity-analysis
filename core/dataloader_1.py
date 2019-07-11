@@ -9,7 +9,7 @@ from librosa.feature import mfcc
 
 class DataLoader:
     def __init__(self, filename, time_col, features, ten_col,
-                 shuffle=True, batch_size=64, ):
+                 shuffle=True, batch_size=64):
         """
 
         :param filename: A DataFrame to be passed in
@@ -109,10 +109,15 @@ class DataLoader:
             for j, item in enumerate(i):
                 multiplier = []
 
+                users = set()
+                num_users = 0
                 for k in item:
                     multiplier.append(int(k[1]))
+                    if k[0] not in users:
+                        users.add(k[0])
+                        num_users += 1
 
-                buff.append(sum(multiplier))
+                buff.append([sum(multiplier), num_users])
             d.append(buff)
         return d, unique_ten
 

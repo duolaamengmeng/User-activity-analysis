@@ -27,17 +27,19 @@ class AddNum:
     def pre_processing(self):
         self.df = self.df[self.features]
         array = np.array(self.df)
+        self.df['instance_id'] = pd.to_numeric(self.df['instance_id'])
         self.unique_ten['instance_id'] = pd.to_numeric(self.unique_ten['instance_id'])
         instances = self.df['instance_id'].tolist()
         ten_set = set(self.unique_ten['instance_id'].tolist())
         data = []
-        bar = Bar('Pre-process', max=len(instances))
-        for index, i in enumerate(instances):
-            if int(i) in ten_set:
-                data.append(array[index, :])
-            bar.next()
-        bar.finish()
-        self.df = pd.DataFrame(data, columns=self.features)
+        # bar = Bar('Pre-process', max=len(instances))
+        # for index, i in enumerate(instances):
+        #     if int(i) in ten_set:
+        #         data.append(array[index, :])
+        #     bar.next()
+        # bar.finish()
+        # self.df = pd.DataFrame(data, columns=self.features)
+        self.df = pd.merge(self.unique_ten, self.df, how='inner', on='instance_id')
         self.df['date'] = self.get_time()
 
     def find_index(self, col_name):
@@ -62,16 +64,17 @@ class AddNum:
         array = np.array(self.df)
         data = []
         # column index that stores instanceId
-        ten_col, user_col, date_col = self.find_index('instance_id'), self.find_index('user_id'), self.find_index(
-            'date')
+        ten_col, user_col, date_col, app_id = self.find_index('instance_id'), self.find_index(
+            'user_id'), self.find_index(
+            'date'), self.find_index('open_appid')
         # date, same across all instances
         date = self.get_time()
         # select desirable columns
-        iterator = np.array([array[:, i] for i in [ten_col, user_col, date_col]]).T
+        iterator = np.array([array[:, i] for i in [ten_col, user_col, date_col, app_id]]).T
         dict = {}
         bar = Bar('Add Column', max=len(list(iterator)))
         for i in iterator:
-            key = (i[0], i[1], i[2])
+            key = (i[0], i[1], i[2], i[3])
             if key in dict.keys():
                 dict[key] += 1
             else:
