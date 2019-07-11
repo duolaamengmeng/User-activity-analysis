@@ -9,22 +9,15 @@ from librosa.feature import mfcc
 
 class DataLoader:
     def __init__(self, filename, time_col, features, ten_col,
-                 shuffle=True, batch_size=64):
+                 shuffle=True, batch_size=64, ):
         """
-        A class for pre-processing, generating data for time series analysis
 
-
-        :param filename: path to the csv format data file
-        :param time_col: column name of time steps
-        :param onehot_features: features that needs to be one hot encoded -list of str
-        features-list of str: list of features to be selected
-        ten_col-str: column name that contains tenant ID
-        error-list of str: error codes to be converted
-        error_col-str: column name of which contains error codes
-        data_split-bool: whether the data needs to be split, default True
-        sample_size-int: sample size of the split data, default 500
-        shuffle-bool: whether needs to shuffle in the batch generator, default True
-        batch_size: batch size of each output of the batch generator, default 64
+        :param filename: A DataFrame to be passed in
+        :param time_col: Name of the column that describes time steps
+        :param features: Features that we are interested in
+        :param ten_col: Name of the column that describes company(instance) identification
+        :param shuffle: whether shuffle for batch generator
+        :param batch_size: batch size of the batch generator
         """
 
         self.df = filename
@@ -66,7 +59,7 @@ class DataLoader:
                 t = time.time()
             clear_output(wait=True)
             print('step 1: iteration {}  out of {}'.format(index, total_iteration))
-            print('time ultilized: {}'.format(time.time() - t))
+            print('time utilized: {}'.format(time.time() - t))
             t = time.time()
             buff = []
             for j, item in enumerate(array):
@@ -89,7 +82,7 @@ class DataLoader:
                 t = time.time()
             clear_output(wait=True)
             print('step 2: iteration {}  out of {}'.format(j_index, total_iteration))
-            print('time ultilized: {}'.format(time.time() - t))
+            print('time utilized: {}'.format(time.time() - t))
             t = time.time()
 
             cpp = []

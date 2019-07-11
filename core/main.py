@@ -20,8 +20,9 @@ def process(file_path, num_of_work_day, tenant_path):
 
     # Raw Data contains all individual operations, saved in (# of days) files
     # For each file(one day of raw data), information of each user is collected
-    # Previous step is ran (# of days) time, result is concatenated on the 1st axis
-    # Preprocessed data information of each user on each day, with instanceId intact
+    # Previous step is ran (# of days) time, result is concatenated on the 0th axis
+    # Preprocessed data contains information of each user on each day, with instanceId intact
+
     # Load data preprocessed from server
     d = np.load(file_path, allow_pickle=True)
     df = []
@@ -30,14 +31,17 @@ def process(file_path, num_of_work_day, tenant_path):
         temp.append(i[1])
         df.append(temp)
     print('start labelling dates...')
+
+    # Transform into DataFrame
     df = pd.DataFrame(df, columns=['instance_id', 'user_id', 'date', 'actions'])
 
-    # add a column to df which describes date type
+    # Add a column to df which describes date type
+    # Request from URL, make sure internet is stable
+    pre_process = PreProcessing(df, 'date')
     # 正常工作日对应结果为 0,
     # 法定节假日对应结果为 1,
     # 节假日调休补班对应的结果为 2，
     # 休息日对应结果为 3
-    pre_process = PreProcessing(df, 'date')
     df = pre_process.add_column()
 
     # select only workdays
@@ -79,9 +83,8 @@ def process(file_path, num_of_work_day, tenant_path):
 
         df['date'] = column
         return df
-
     result = list(map(build, unique_instances))
-
+    # Concatenate results from map on the 0 axis
     for i in range(len(result)):
         if i == 0:
             data = result[i]
@@ -91,7 +94,7 @@ def process(file_path, num_of_work_day, tenant_path):
     # Select desirable amount of workdays
     data = data[data['date'] <= num_of_work_day]
 
-    # Pass data to data loader, returns data(2d nested list) & unique_instance (list)
+    # Pass data to data loader, returns: data(2d nested list) & unique_instance (list)
     # data has shape of (time_step, instance)
     p = DataLoader(
         data, 'date', ['userId', 'actions', 'instanceId', 'date'],

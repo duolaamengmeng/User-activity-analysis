@@ -66,9 +66,6 @@ class AddNum:
             'date')
         # date, same across all instances
         date = self.get_time()
-        # ignore
-
-
         # select desirable columns
         iterator = np.array([array[:, i] for i in [ten_col, user_col, date_col]]).T
         dict = {}
