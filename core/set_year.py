@@ -9,7 +9,7 @@ import math
 class SetYear:
     def __init__(self, df, filename):
         # only include work days
-        self.df = df[(df['date_type'] == 0) | (df['date_type'] == 2)].iloc[:, :4]
+        self.df = df[(df['date_type'] == 0) | (df['date_type'] == 2)].iloc[:, :5]
         self.time_table = np.array(pd.read_csv(filename), dtype=str)
 
     def makedict(self):
@@ -37,50 +37,36 @@ class SetYear:
             t.update({i: time.mktime(d.timetuple())})
 
         all_time = []
+        # for i in df['date'].tolist():
+        #     for key in t:
+        #         if str(i) == key:
+        #             all_time.append(t[key])
+
         for i in df['date'].tolist():
-            for key in t:
-                if str(i) == key:
-                    all_time.append(t[key])
+            all_time.append(t[str(i)])
 
         df['date'] = all_time
 
         return df
 
-    # def change_time(self):
-    #     df = self.unix_time()
-    #     dictionary = self.makedict()
-    #     array = np.array(df)
-    #     print('start step 2')
-    #     t = time.time()
-    #
-    #     # iterate through data set
-    #     for index, i in enumerate(array):
-
-    #         # iterate through keys
-    #         for key in dictionary:
-    #             # if company id matches
-    #             if str(i[2]) == str(key):
-    #                 # operations
-    #                 array[index, 3] = math.ceil((int(
-    #                     array[index, 3]) - int(dictionary[key])) / 86400)
-    #
-    #     return array
-
     def change_time(self):
+        print('change to unix time...')
         df = self.unix_time()
+        print('making dictionary...')
         dictionary = self.makedict()
+        print('labelling...')
         array = np.array(df)
-        print('start step 2')
 
         date_col = self.find_index('date')
         ten_col = self.find_index('instance_id')
 
+        # def build(i):
+        #     for key in dictionary:
+        #         if str(i[ten_col]) == str(key):
+        #             return math.ceil((int(
+        #                 i[date_col]) - int(dictionary[key])) / 86400)
         def build(i):
-            for key in dictionary:
-                if str(i[ten_col]) == str(key):
-                    return math.ceil((int(
-                        i[date_col]) - int(dictionary[key])) / 86400)
-
+            return math.ceil((int(i[date_col]) - int(dictionary[str(i[ten_col])])) / 86400)
         result = list(map(build, array))
         array[:, date_col] = result
 

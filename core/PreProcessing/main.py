@@ -24,7 +24,7 @@ def loop(file_path, feature, unique_ten_path):
 
 
 if __name__ == '__main__':
-    data = loop(file_path='/data/uspace/file', feature=['user_id', 'instance_id', 'mtime'],
+    data = loop(file_path='/data/uspace/file', feature=['user_id', 'instance_id', 'mtime', 'open_appid'],
                 unique_ten_path='/data/uspace/code/uspace.csv')
     np.save('data.npy', data)
 

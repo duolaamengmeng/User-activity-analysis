@@ -30,11 +30,12 @@ def process(file_path, num_of_work_day, tenant_path):
         temp = list(i[0])
         temp.append(i[1])
         df.append(temp)
+
     print('start labelling dates...')
 
     # Transform into DataFrame
-    df = pd.DataFrame(df, columns=['instance_id', 'user_id', 'date', 'actions'])
-
+    df = pd.DataFrame(df, columns=['instance_id', 'user_id', 'date', 'appid', 'actions'])
+    df = df.fillna('892714')
     # Add a column to df which describes date type
     # Request from URL, make sure internet is stable
     pre_process = PreProcessing(df, 'date')
@@ -49,7 +50,7 @@ def process(file_path, num_of_work_day, tenant_path):
     s = SetYear(df=df,
                 filename=tenant_path)
     data_array = s.change_time()
-    data_array = pd.DataFrame(data_array, columns=['instanceId', 'userId', 'date', 'actions'])
+    data_array = pd.DataFrame(data_array, columns=['instanceId', 'userId', 'date', 'appid', 'actions'])
     data_array['date'] = pd.to_numeric(data_array['date'])
 
     # Only select dates after activation date
@@ -77,13 +78,14 @@ def process(file_path, num_of_work_day, tenant_path):
         column = []
 
         for i in d:
-            for key in dictionary:
-                if i == key:
-                    column.append(dictionary[key])
+            # for key in dictionary:
+            #     if i == key:
+            column.append(dictionary[i])
 
-        df['date'] = column
+        df.loc[:, 'date'] = column
         return df
     result = list(map(build, unique_instances))
+    print('sorting...')
     # Concatenate results from map on the 0 axis
     for i in range(len(result)):
         if i == 0:
@@ -97,8 +99,8 @@ def process(file_path, num_of_work_day, tenant_path):
     # Pass data to data loader, returns: data(2d nested list) & unique_instance (list)
     # data has shape of (time_step, instance)
     p = DataLoader(
-        data, 'date', ['userId', 'actions', 'instanceId', 'date'],
-        'instanceId'
+        data, 'date', ['userId', 'actions', 'instanceId', 'date', 'appid'],
+        'instanceId', onehot_features=['appid']
     )
     data = p.sum_all()
 
@@ -107,7 +109,7 @@ def process(file_path, num_of_work_day, tenant_path):
 
 if __name__ == '__main__':
     t = time.time()
-    data = process('C:\\Users\\Administrator\\PycharmProjects\\yonyou\\data\\data3.npy', 125,
+    data = process('C:\\Users\\Administrator\\PycharmProjects\\yonyou\\data\\data_all.npy', 125,
                    'C:\\Users\\Administrator\\PycharmProjects\\yonyou\\data\\instance_created.csv')
     np.save('data', data)
     print(time.time() - t)

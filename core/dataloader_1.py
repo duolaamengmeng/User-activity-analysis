@@ -1,14 +1,16 @@
 from __future__ import division
-
+import pandas as pd
 import time
+from sklearn.preprocessing import OneHotEncoder
 
 import numpy as np
 from IPython.display import clear_output
 from librosa.feature import mfcc
+from scipy.sparse import hstack
 
 
 class DataLoader:
-    def __init__(self, filename, time_col, features, ten_col,
+    def __init__(self, filename, time_col, features, ten_col, onehot_features,
                  shuffle=True, batch_size=64):
         """
 
@@ -16,6 +18,7 @@ class DataLoader:
         :param time_col: Name of the column that describes time steps
         :param features: Features that we are interested in
         :param ten_col: Name of the column that describes company(instance) identification
+        :param onehot_features: List of the categorical variables' name (str) that needs to be one hot encoded
         :param shuffle: whether shuffle for batch generator
         :param batch_size: batch size of the batch generator
         """
@@ -26,6 +29,7 @@ class DataLoader:
         self.ten_col = ten_col
         self.shuffle = shuffle
         self.batch_size = batch_size
+        self.onehot_features = onehot_features
 
     def find_time_bin(self):
         """returns a list containing time-steps"""
@@ -43,12 +47,18 @@ class DataLoader:
         """
         # get features
         self.df = self.df[self.features]
-        data = np.array(self.df)
+        print(self.df.head())
+        for i in self.onehot_features:
+            self.df[i] = self.df[i].astype(str)
+            one_hot = pd.get_dummies(self.df[i])
+            self.df = self.df.drop(i, axis=1)
+            self.df = self.df.join(one_hot)
+        print(self.df.head())
 
-        return data
 
     def time(self):
-        array = self.pre_processing()
+        self.pre_processing()
+        array = np.array(self.df)
         time_col = self.find_index(self.time_col)
         time_bin = self.find_time_bin()
         total_iteration = len(time_bin)
@@ -63,7 +73,7 @@ class DataLoader:
             t = time.time()
             buff = []
             for j, item in enumerate(array):
-                if item[time_col] == i:  # get only value, preventing from making another matrix
+                if item[time_col] == i:
                     buff.append(item)
 
             result.append(buff)
@@ -103,22 +113,42 @@ class DataLoader:
         feature matrix) of each (TimeStep, Company)"""
 
         data, unique_ten = self.make3dts()
+        action_col = self.find_index('actions')
         d = []
+
+        onehot_col = [self.find_index(z) for z in self.df.columns if z not in self.features]
         for indx, i in enumerate(data):
             buff = []
+
             for j, item in enumerate(i):
                 multiplier = []
-
+                m = []
                 users = set()
                 num_users = 0
+
                 for k in item:
-                    multiplier.append(int(k[1]))
+                    multiplier.append(int(k[action_col]))
+                    m.append(k[(onehot_col)])
                     if k[0] not in users:
                         users.add(k[0])
                         num_users += 1
 
-                buff.append([sum(multiplier), num_users])
+                buff.append(list(np.hstack([sum(multiplier), num_users,
+                                            np.dot(np.array(multiplier).T, np.array(m))])))
             d.append(buff)
+            d = np.array(d)
+            a = np.transpose(d, (1, 0))
+            for i in range(len(a)):
+                for j in range(len(a[i])):
+                    if len(a[i][j]) != 2 + len(onehot_col):
+                        a[i, j] = np.zeros(2 + len(onehot_col))
+            a = a.flatten()
+            d = []
+            for i in a:
+                for j in i:
+                    d.append(j)
+            d = np.array(d, dtype=int)
+            d = d.reshape(-1, 126, 147)
         return d, unique_ten
 
     def frequency_feature(self):

@@ -1,13 +1,13 @@
 import json
 from datetime import datetime
 from urllib.request import urlopen, Request
-
+import numpy as np
 import pandas as pd
 from IPython.display import clear_output
 
 
 class PreProcessing:
-    def __init__(self, filename, time_col, unix_time_stamp=False):
+    def __init__(self, filename, time_col, unix_time_stamp=False, request_from_server=False):
         """
         this class takes a DataFrame and its time column name as input,
         requests the date type on the server "http://api.goseek.cn/Tools/holiday?date="
@@ -16,7 +16,7 @@ class PreProcessing:
         :param filename: a DataFrame
         :param time_col: the name of the column that records time stamp in str
         :param unix_time_stamp: whether the format of time_col is in unix time stamp, bool
-
+        :param request_from_server: whether request date_type from server.
         正常工作日对应结果为 0,
         法定节假日对应结果为 1,
         节假日调休补班对应的结果为 2，
@@ -27,6 +27,7 @@ class PreProcessing:
         self.time_col = time_col
         self.time_set = list(set(self.df[self.time_col].tolist()))
         self.unix_time_stamp = unix_time_stamp
+        self.request_from_server = request_from_server
 
     def pre_processing(self):
         date_time = []
@@ -72,7 +73,7 @@ class PreProcessing:
             dictionary.update({self.time_set[index]: json.loads(vop_response.read())['data']})
             clear_output(wait=True)
             print('step 1: iteration {}  out of {}'.format(index, len(date_time)))
-
+        np.save('dates_label.npy', dictionary)
         return dictionary
 
     def add_column(self):
@@ -82,8 +83,10 @@ class PreProcessing:
 
         :return: a DataFrame with date_type column
         """
-        dictionary = self.find_date_type()
-
+        if self.request_from_server:
+            dictionary = self.find_date_type()
+        else:
+            dictionary = np.load('dates_label.npy', allow_pickle=True).item()
         # Make an empty list to store date type
         date_type = []
         keys = list(dictionary.keys())
@@ -92,15 +95,15 @@ class PreProcessing:
         # iterate through time column
         for index, i in enumerate(self.df[self.time_col].tolist()):
             # Print progress every 1000 iterations
-            if index % 1000 == 999:
+            if index % 1000000 == 999999:
                 clear_output(wait=True)
                 print('step 1: iteration {}  out of {}'.format(index, total_iteration))
 
             # iterate through keys (unique dates) in the dictionary
             # if the date in time_col == date in dictionary, append date type to the empty list
-            for j in keys:
-                if i == j:
-                    date_type.append(dictionary[j])
+            # for j in keys:
+            #     if i == j:
+            date_type.append(dictionary[i])
         # Finally concatenate the empty list with the original DataFrame on axis 1
         df = pd.concat([self.df, pd.DataFrame(date_type, columns=['date_type'])], axis=1)
         return df
