@@ -136,19 +136,20 @@ class DataLoader:
                 buff.append(list(np.hstack([sum(multiplier), num_users,
                                             np.dot(np.array(multiplier).T, np.array(m))])))
             d.append(buff)
-            d = np.array(d)
-            a = np.transpose(d, (1, 0))
-            for i in range(len(a)):
-                for j in range(len(a[i])):
-                    if len(a[i][j]) != 2 + len(onehot_col):
-                        a[i, j] = np.zeros(2 + len(onehot_col))
-            a = a.flatten()
-            d = []
-            for i in a:
-                for j in i:
-                    d.append(j)
-            d = np.array(d, dtype=int)
-            d = d.reshape(-1, 126, 147)
+
+        a = np.array(d)
+        a = np.transpose(a, (1, 0))
+        for i in range(len(a)):
+            for j in range(len(a[i])):
+                if len(a[i][j]) != 2 + len(onehot_col):
+                    a[i, j] = np.zeros(2 + len(onehot_col))
+        a = a.flatten()
+        d = []
+        for i in a:
+            for j in i:
+                d.append(j)
+        d = np.array(d, dtype=int)
+        d = d.reshape(-1, 126, 147)
         return d, unique_ten
 
     def frequency_feature(self):
