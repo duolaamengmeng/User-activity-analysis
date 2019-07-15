@@ -20,7 +20,7 @@ Many studies have shown that good customer loyalty consistitues greatly on an or
 ## Built With
 
 * [numpy](http://www.numpy.org/) - Package for scientific computing with Python
-* [pandas](https://pandas.pydata.org/) - data structures and data analysis tools for the Python
+* [pandas](https://pandas.pydata.org/) - data structures and data analysis tools for Python
 
 
 
