@@ -149,7 +149,7 @@ class DataLoader:
             for j in i:
                 d.append(j)
         d = np.array(d, dtype=int)
-        d = d.reshape(-1, 126, 147)
+        d = d.reshape(-1, 126, 2 + len(onehot_col))
         return d, unique_ten
 
     def frequency_feature(self):

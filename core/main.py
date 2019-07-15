@@ -102,14 +102,15 @@ def process(file_path, num_of_work_day, tenant_path):
         data, 'date', ['userId', 'actions', 'instanceId', 'date', 'appid'],
         'instanceId', onehot_features=['appid']
     )
-    data = p.sum_all()
+    data, unique_ten = p.sum_all()
 
-    return data
+    return data, unique_ten
 
 
 if __name__ == '__main__':
     t = time.time()
-    data = process('C:\\Users\\Administrator\\PycharmProjects\\yonyou\\data\\data_all.npy', 125,
+    data, unique_ten = process('C:\\Users\\Administrator\\PycharmProjects\\yonyou\\data\\data_all.npy', 125,
                    'C:\\Users\\Administrator\\PycharmProjects\\yonyou\\data\\instance_created.csv')
     np.save('data', data)
+    np.save('instance', unique_ten)
     print(time.time() - t)
