@@ -6,7 +6,7 @@ from progress.bar import Bar
 
 
 class AddNum:
-    def __init__(self, file_path, filename, features, unique_ten_path):
+    def __init__(self, file_path, filename, features, unique_ten_path, apptype_path):
         """
         This class takes a Json file, transform the instances from individual
         operations to users, column 'action' which describes the number of actions
@@ -23,23 +23,29 @@ class AddNum:
             self.df = pd.read_json(data, lines=True)
         self.features = features
         self.unique_ten = pd.read_csv(unique_ten_path)
+        self.appType = pd.read_csv(apptype_path)
 
     def pre_processing(self):
+        print('total number of line {}'.format(self.df.shape[0]))
         self.df = self.df[self.features]
-        array = np.array(self.df)
-        self.df['instance_id'] = pd.to_numeric(self.df['instance_id'])
-        self.unique_ten['instance_id'] = pd.to_numeric(self.unique_ten['instance_id'])
-        instances = self.df['instance_id'].tolist()
-        ten_set = set(self.unique_ten['instance_id'].tolist())
-        data = []
-        # bar = Bar('Pre-process', max=len(instances))
-        # for index, i in enumerate(instances):
-        #     if int(i) in ten_set:
-        #         data.append(array[index, :])
-        #     bar.next()
-        # bar.finish()
-        # self.df = pd.DataFrame(data, columns=self.features)
+        self.df['instance_id'] = self.df['instance_id'].astype(str)
+        self.unique_ten['instance_id'] = self.unique_ten['instance_id'].astype(str)
         self.df = pd.merge(self.unique_ten, self.df, how='inner', on='instance_id')
+        self.df['appid'] = self.df['appid'].fillna('8927')
+        dict = {}
+        instance_table = np.array(self.appType, dtype=float)
+        for i in range(instance_table.shape[0]):
+            dict.update({instance_table[i, 0]: instance_table[i, 1]})
+
+        app = []
+        appId = pd.to_numeric(self.df['open_appid']).tolist()
+        for i in appId:
+            if i in dict.keys():
+                app.append(dict[i])
+            else:
+                app.append(4)
+
+        self.df['open_appid'] = app
         self.df['date'] = self.get_time()
 
     def find_index(self, col_name):
@@ -54,6 +60,7 @@ class AddNum:
         return datetime.fromtimestamp(ts).strftime('%Y%m%d')
 
     def add(self):
+
         self.pre_processing()
         print('pre-process finished')
         # unique users
