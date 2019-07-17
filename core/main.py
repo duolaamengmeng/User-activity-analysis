@@ -93,11 +93,11 @@ def process(file_path, num_of_work_day, tenant_path):
         else:
             data = pd.concat([data, result[i]], axis=0)
 
-    # Select desirable amount of workdays
+    # # Select desirable amount of workdays
     data = data[data['date'] <= num_of_work_day]
-
-    # Pass data to data loader, returns: data(2d nested list) & unique_instance (list)
-    # data has shape of (time_step, instance)
+    #
+    # # Pass data to data loader, returns: data(2d nested list) & unique_instance (list)
+    # # data has shape of (time_step, instance)
     p = DataLoader(
         data, 'date', ['userId', 'actions', 'instanceId', 'date', 'appid'],
         'instanceId', onehot_features=['appid']
@@ -109,8 +109,11 @@ def process(file_path, num_of_work_day, tenant_path):
 
 if __name__ == '__main__':
     t = time.time()
+    # data, unique_ten = process('C:\\Users\\Administrator\\PycharmProjects\\yonyou\\data\\data_all.npy', 125,
+    #                'C:\\Users\\Administrator\\PycharmProjects\\yonyou\\data\\instance_created.csv')
+    # np.save('data', data)
+    # np.save('instance', unique_ten)
     data, unique_ten = process('C:\\Users\\Administrator\\PycharmProjects\\yonyou\\data\\data_all.npy', 125,
-                   'C:\\Users\\Administrator\\PycharmProjects\\yonyou\\data\\instance_created.csv')
-    np.save('data', data)
-    np.save('instance', unique_ten)
+                               'C:\\Users\\Administrator\\PycharmProjects\\yonyou\\data\\instance_created.csv')
+    data.to_csv('all_data.csv')
     print(time.time() - t)
