@@ -26,27 +26,39 @@ class AddNum:
         self.appType = pd.read_csv(apptype_path)
 
     def pre_processing(self):
-        print('total number of line {}'.format(self.df.shape[0]))
-        self.df = self.df[self.features]
-        self.df['instance_id'] = self.df['instance_id'].astype(str)
+        print('total number of line: {} '.format(self.df.shape[0]))
+        df = self.df
+        df = df[self.features]
+        original_len = df.shape[0]
+        df = df.dropna()
+        new_len = df.shape[0]
+        df['instance_id'] = df['instance_id'].astype(str)
         self.unique_ten['instance_id'] = self.unique_ten['instance_id'].astype(str)
-        self.df = pd.merge(self.unique_ten, self.df, how='inner', on='instance_id')
-        self.df['appid'] = self.df['appid'].fillna('8927')
+        df = pd.merge(self.unique_ten, df, how='inner', on='instance_id')
+        print('Num of selected line: {} '.format(df.shape[0]))
+
+        print('Num of NA deleted: {} '.format(original_len - new_len))
+
+        df['open_appid'] = pd.to_numeric(df['open_appid']).dropna()
         dict = {}
         instance_table = np.array(self.appType, dtype=float)
         for i in range(instance_table.shape[0]):
+            # update dictionary {OpenAppID: APPType}
             dict.update({instance_table[i, 0]: instance_table[i, 1]})
 
         app = []
-        appId = pd.to_numeric(self.df['open_appid']).tolist()
+
+        appId = df['open_appid'].tolist()
         for i in appId:
             if i in dict.keys():
                 app.append(dict[i])
             else:
-                app.append(4)
+                app.append(i)
 
-        self.df['open_appid'] = app
-        self.df['date'] = self.get_time()
+        df['open_appid'] = app
+
+        df['date'] = self.get_time()
+        self.df = df
 
     def find_index(self, col_name):
         """ enters a column name in string format,
@@ -63,19 +75,15 @@ class AddNum:
 
         self.pre_processing()
         print('pre-process finished')
-        # unique users
-        users = set(self.df['user_id'].tolist())
-        # all users
-        all_users = self.df['user_id'].tolist()
+
         # data table
         array = np.array(self.df)
-        data = []
         # column index that stores instanceId
         ten_col, user_col, date_col, app_id = self.find_index('instance_id'), self.find_index(
             'user_id'), self.find_index(
             'date'), self.find_index('open_appid')
         # date, same across all instances
-        date = self.get_time()
+
         # select desirable columns
         iterator = np.array([array[:, i] for i in [ten_col, user_col, date_col, app_id]]).T
         dict = {}
@@ -86,23 +94,10 @@ class AddNum:
                 dict[key] += 1
             else:
                 dict[key] = 1
+
             bar.next()
         bar.finish()
-        # # iterate unique user
-        # for index, i in enumerate(users):
-        #     actions = 0
-        #     all_index = []
-        #     # iterate through the whole data set
-        #     for indexJ, j in enumerate(all_users):
-        #         if i == j:
-        #             actions += 1
-        #             all_index.append(indexJ)
 
-        # [userId, #of actions, instanceId, date]
-        # data.append([i, actions, array[all_index[0], ten_col], date])
-        # bar.next()
-        # bar.finish()
-        # data = [[key, dictionary[key]] for key in dictionary]
         data = []
         for key in dict:
             data.append([key, dict[key]])

@@ -4,7 +4,7 @@ import tensorflow as tf
 import sklearn
 import matplotlib.pyplot as plt
 from keras.models import Sequential
-from keras.layers.recurrent import LSTM
+from keras.layers.recurrent import LSTM, GRU
 from keras.layers import Dense, Conv1D
 from keras.optimizers import Adam, SGD
 from keras.layers import Dropout
@@ -15,15 +15,40 @@ from sklearn.preprocessing import MinMaxScaler
 import pandas as pd
 import main
 from sklearn.model_selection import train_test_split
+from sklearn import preprocessing
+import time
+from sklearn.metrics import accuracy_score
 
 
-def load_data(filePath, num_work_day, instancepath):
-    data, unique_ten = main.process(filePath, num_work_day, instancepath)
-    data = data.flatten().reshape(-1, 1)
-    min_max_scaler = MinMaxScaler(feature_range=(0, 1))
-    d1_scaled = min_max_scaler.fit_transform(data)
-    d1_scaled = d1_scaled.reshape(189, -1, 126)
-    return d1_scaled, unique_ten
+def mini_max(col):
+    """
+    return a scaled new col
+    """
+    col = np.array(col).reshape(-1, 1)
+    scaler = preprocessing.StandardScaler().fit(col)
+    temp = scaler.transform(col)
+    temp = temp.flatten()
+    return temp
+
+
+def load_data(apptype_path, filePath, num_work_day, instancepath, preprocessing=False):
+    if preprocessing:
+        data, unique_ten = main.process(apptype_path, filePath, num_work_day, instancepath)
+        np.save('data.npy', data)
+        np.save('ten.npy', unique_ten)
+    else:
+        data, unique_ten = np.load('data.npy'), np.load('ten.npy')
+    data = data[:, :, 1:]
+    batch_size = data.shape[0]
+    feature_space = data.shape[2]
+    time_step = data.shape[1]
+    data = data.reshape(batch_size, -1)
+    lst = []
+    for col in data.T:
+        lst.append(mini_max(col))
+    lst = np.array(lst).T
+    data_scaled = lst.reshape(batch_size, feature_space, time_step)
+    return data_scaled, unique_ten
 
 
 def make_label(filePath, unique_ten):
@@ -41,28 +66,39 @@ def make_label(filePath, unique_ten):
     return label
 
 
-def train_test_split(data, label):
+def lstm_model(epoch, data, label):
     X_train, X_test, y_train, y_test = train_test_split(
-        data, label, test_size=0.10)
-    return X_train, X_test, y_train, y_test
-
-
-def lstm_model(epoch, X_train, X_test, y_train, y_test):
+        data, label, test_size=0.25)
     epochs = epoch
-    opt = SGD(lr=0.001)
+    opt = Adam()
     model = Sequential()
-    model.add(LSTM(units=128,
-                   return_sequences=True, input_shape=[None, 126]))
-
+    model.add(Dropout(0.7, input_shape=[X_train.shape[1], X_train.shape[2]]))
+    model.add(LSTM(units=64,
+                   return_sequences=True))
+    model.add(Dropout(0.7))
     model.add(LSTM(units=32,
                    return_sequences=False))
-
+    model.add(Dropout(0.7))
     # model.add(Dropout(rate = 0.5, noise_shape=None, seed=None))
+    model.add(Dense(units=32, activation='softmax'))
     model.add(Dense(units=1, activation='sigmoid'))
     model.compile(loss='binary_crossentropy', optimizer=opt,
                   metrics=['binary_accuracy'])
     model.fit(X_train, y_train, batch_size=32, shuffle=True, epochs=epochs, validation_data=(X_test, y_test))
+    print(X_test.shape)
+    prediction = model.predict(X_test)
+    prediction = (prediction > 0.5)
+    print('accuracy score: {}'.format(accuracy_score(y_test, prediction)))
+    # print(np.array(*list(np.array([[i,j] for i in prediction for j in y_test]).T), sep='\n'))
 
 
-def main():
-    pass
+if __name__ == '__main__':
+    t = time.time()
+    data, unique_ten = load_data('C:\\Users\\Administrator\\PycharmProjects\\yonyou\\data\\appType.csv',
+                                 'C:\\Users\\Administrator\\PycharmProjects\\yonyou\\data\\data_all.npy', 125,
+                                 'C:\\Users\\Administrator\\PycharmProjects\\yonyou\\data\\instance_created.csv')
+
+    label = make_label('C:\\Users\\Administrator\\PycharmProjects\\yonyou\\data\\repaid.csv', unique_ten)
+
+    lstm_model(1000, data, label)
+    print(time.time() - t)

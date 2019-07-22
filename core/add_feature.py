@@ -4,7 +4,7 @@ from urllib.request import urlopen, Request
 import numpy as np
 import pandas as pd
 from IPython.display import clear_output
-
+import os
 
 class PreProcessing:
     def __init__(self, filename, time_col, unix_time_stamp=False, request_from_server=False):
@@ -71,7 +71,7 @@ class PreProcessing:
             # append keys and value pairs to dictionary
             # {date,date_type}
             dictionary.update({self.time_set[index]: json.loads(vop_response.read())['data']})
-            clear_output(wait=True)
+            os.system('cls' if os.name == 'nt' else 'clear')
             print('step 1: iteration {}  out of {}'.format(index, len(date_time)))
         np.save('dates_label.npy', dictionary)
         return dictionary
@@ -89,20 +89,9 @@ class PreProcessing:
             dictionary = np.load('dates_label.npy', allow_pickle=True).item()
         # Make an empty list to store date type
         date_type = []
-        keys = list(dictionary.keys())
-        total_iteration = len(self.df[self.time_col].tolist())
-
         # iterate through time column
         for index, i in enumerate(self.df[self.time_col].tolist()):
-            # Print progress every 1000 iterations
-            if index % 1000000 == 999999:
-                clear_output(wait=True)
-                print('step 1: iteration {}  out of {}'.format(index, total_iteration))
 
-            # iterate through keys (unique dates) in the dictionary
-            # if the date in time_col == date in dictionary, append date type to the empty list
-            # for j in keys:
-            #     if i == j:
             date_type.append(dictionary[i])
         # Finally concatenate the empty list with the original DataFrame on axis 1
         df = pd.concat([self.df, pd.DataFrame(date_type, columns=['date_type'])], axis=1)

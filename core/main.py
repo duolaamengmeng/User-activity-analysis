@@ -9,7 +9,7 @@ from dataloader_1 import DataLoader
 from set_year import SetYear
 
 
-def process(file_path, num_of_work_day, tenant_path):
+def process(apptype_path, file_path, num_of_work_day, tenant_path):
     """
 
     :param file_path: path of the PreProcessed npy file
@@ -24,18 +24,36 @@ def process(file_path, num_of_work_day, tenant_path):
     # Preprocessed data contains information of each user on each day, with instanceId intact
 
     # Load data preprocessed from server
+    appType = pd.read_csv(apptype_path)
+
     d = np.load(file_path, allow_pickle=True)
     df = []
     for i in d:
         temp = list(i[0])
         temp.append(i[1])
         df.append(temp)
-
-    print('start labelling dates...')
+    instance_table = np.array(appType, dtype=float)
+    dict = {}
+    for i in range(instance_table.shape[0]):
+        # update dictionary {OpenAppID: APPType}
+        dict.update({instance_table[i, 0]: instance_table[i, 1]})
 
     # Transform into DataFrame
     df = pd.DataFrame(df, columns=['instance_id', 'user_id', 'date', 'appid', 'actions'])
     df = df.fillna('892714')
+    app = []
+    appId = df['appid'].tolist()
+
+    for i in appId:
+        if i in dict.keys():
+            app.append(dict[i])
+        else:
+            app.append(i)
+    df['appid'] = app
+
+    df = pd.merge(df, pd.DataFrame([0, 1, 2], columns=['appid'], dtype=object), how='inner', on='appid')
+    print(df.shape)
+    print('start labelling dates...')
     # Add a column to df which describes date type
     # Request from URL, make sure internet is stable
     pre_process = PreProcessing(df, 'date')
@@ -109,11 +127,10 @@ def process(file_path, num_of_work_day, tenant_path):
 
 if __name__ == '__main__':
     t = time.time()
-    # data, unique_ten = process('C:\\Users\\Administrator\\PycharmProjects\\yonyou\\data\\data_all.npy', 125,
-    #                'C:\\Users\\Administrator\\PycharmProjects\\yonyou\\data\\instance_created.csv')
-    # np.save('data', data)
-    # np.save('instance', unique_ten)
-    data, unique_ten = process('C:\\Users\\Administrator\\PycharmProjects\\yonyou\\data\\data_all.npy', 125,
+    data, unique_ten = process('C:\\Users\\Administrator\\PycharmProjects\\yonyou\\data\\appType.csv',
+                               'C:\\Users\\Administrator\\PycharmProjects\\yonyou\\data\\data_all.npy', 125,
                                'C:\\Users\\Administrator\\PycharmProjects\\yonyou\\data\\instance_created.csv')
-    data.to_csv('all_data.csv')
+    np.save('data', data)
+    np.save('instance', unique_ten)
+
     print(time.time() - t)
