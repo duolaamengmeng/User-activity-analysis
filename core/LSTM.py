@@ -1,23 +1,16 @@
-import os
-import numpy as np
-import tensorflow as tf
-import sklearn
-import matplotlib.pyplot as plt
-from keras.models import Sequential
-from keras.layers.recurrent import LSTM, GRU
-from keras.layers import Dense, Conv1D
-from keras.optimizers import Adam, SGD
-from keras.layers import Dropout
-from keras.layers import MaxPooling1D, GlobalAveragePooling1D
-from keras.layers.normalization import BatchNormalization
-import tensorflow as tf
-from sklearn.preprocessing import MinMaxScaler
-import pandas as pd
-import main
-from sklearn.model_selection import train_test_split
-from sklearn import preprocessing
 import time
+
+import main
+import numpy as np
+import pandas as pd
+from keras.layers import Dense
+from keras.layers import Dropout
+from keras.layers.recurrent import LSTM
+from keras.models import Sequential
+from keras.optimizers import Adam
+from sklearn import preprocessing
 from sklearn.metrics import accuracy_score
+from sklearn.model_selection import train_test_split
 
 
 def mini_max(col):
@@ -33,7 +26,7 @@ def mini_max(col):
 
 def load_data(apptype_path, filePath, num_work_day, instancepath, preprocessing=False):
     if preprocessing:
-        data, unique_ten = main.process(apptype_path, filePath, num_work_day, instancepath)
+        data, unique_ten = main.dataloader(apptype_path, filePath, num_work_day, instancepath)
         np.save('data.npy', data)
         np.save('ten.npy', unique_ten)
     else:
@@ -73,7 +66,7 @@ def lstm_model(epoch, data, label):
     opt = Adam()
     model = Sequential()
     model.add(Dropout(0.7, input_shape=[X_train.shape[1], X_train.shape[2]]))
-    model.add(LSTM(units=64,
+    model.add(LSTM(units=256,
                    return_sequences=True))
     model.add(Dropout(0.7))
     model.add(LSTM(units=32,

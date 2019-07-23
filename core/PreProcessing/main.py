@@ -22,7 +22,7 @@ def loop(file_path, feature, unique_ten_path, apptype_path):
             except:
                 data = data
 
-    # return data
+    return data
 
 
 if __name__ == '__main__':
