@@ -1,12 +1,10 @@
 from __future__ import division
 import pandas as pd
 import time
-from sklearn.preprocessing import OneHotEncoder
 
 import numpy as np
 from IPython.display import clear_output
 from librosa.feature import mfcc
-from scipy.sparse import hstack
 
 
 class DataLoader:
