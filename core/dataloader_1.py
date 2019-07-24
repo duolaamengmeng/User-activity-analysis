@@ -41,7 +41,8 @@ class DataLoader:
     def pre_processing(self):
         """
         select desired features
-        :return: a numpy array
+        one hot encode desired columns
+        directly modifies self.df
         """
         # get features
         self.df = self.df[self.features]
@@ -51,8 +52,6 @@ class DataLoader:
             one_hot = pd.get_dummies(self.df[i])
             self.df = self.df.drop(i, axis=1)
             self.df = self.df.join(one_hot)
-        print(self.df.head())
-
 
     def time(self):
         self.pre_processing()
@@ -107,7 +106,7 @@ class DataLoader:
     def sum_all(self):
         """This method reshapes the dataset to (TimeStep, Company, FeatureSpace)
         by combines all information of each (TimeStep, Company) into a single entry.
-        As for now, the combination is a matrix dot product of (vector 'num_of_operation' and
+        As for now, the combination is a matrix dot product of (vector actions and
         feature matrix) of each (TimeStep, Company)"""
 
         data, unique_ten = self.make3dts()
@@ -134,9 +133,11 @@ class DataLoader:
                 buff.append(list(np.hstack([sum(multiplier), num_users,
                                             np.dot(np.array(multiplier).T, np.array(m))])))
             d.append(buff)
-
+        #  Store result as a array
         a = np.array(d)
+        #  Reshape to (batch_size, time_step, feature_space
         a = np.transpose(a, (1, 0))
+        #  Find all instances with 0 action, fill with all zeros
         for i in range(len(a)):
             for j in range(len(a[i])):
                 if len(a[i][j]) != 2 + len(onehot_col):

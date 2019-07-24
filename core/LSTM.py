@@ -1,6 +1,6 @@
 import time
 
-import main
+import data
 import numpy as np
 import pandas as pd
 from keras.layers import Dense
@@ -37,6 +37,7 @@ def load_data(apptype_path, filePath, num_work_day, instancepath, preprocessing=
     time_step = data.shape[1]
     data = data.reshape(batch_size, -1)
     lst = []
+    # Individually normalize each column
     for col in data.T:
         lst.append(mini_max(col))
     lst = np.array(lst).T
@@ -73,11 +74,12 @@ def lstm_model(epoch, data, label):
                    return_sequences=False))
     model.add(Dropout(0.7))
     # model.add(Dropout(rate = 0.5, noise_shape=None, seed=None))
-    model.add(Dense(units=32, activation='softmax'))
+    model.add(Dense(units=32, activation='relu'))
     model.add(Dense(units=1, activation='sigmoid'))
     model.compile(loss='binary_crossentropy', optimizer=opt,
                   metrics=['binary_accuracy'])
-    model.fit(X_train, y_train, batch_size=32, shuffle=True, epochs=epochs, validation_data=(X_test, y_test))
+    model.fit(X_train, y_train, batch_size=32, shuffle=True,
+              epochs=epochs, validation_data=(X_test, y_test))
     print(X_test.shape)
     prediction = model.predict(X_test)
     prediction = (prediction > 0.5)

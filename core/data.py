@@ -126,7 +126,7 @@ def dataloader(apptype_path, file_path, num_of_work_day, tenant_path):
     # Data has shape of (time_step, instance)
 
     ###################################################
-    # This class needs to be rewritten, extremely slow#
+    # This class needs to be rewritten, extremely messy#
     ###################################################
     p = DataLoader(
         data, 'date', ['userId', 'actions', 'instanceId', 'date', 'appid'],
