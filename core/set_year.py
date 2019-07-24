@@ -37,10 +37,6 @@ class SetYear:
             t.update({i: time.mktime(d.timetuple())})
 
         all_time = []
-        # for i in df['date'].tolist():
-        #     for key in t:
-        #         if str(i) == key:
-        #             all_time.append(t[key])
 
         for i in df['date'].tolist():
             all_time.append(t[str(i)])
@@ -60,11 +56,6 @@ class SetYear:
         date_col = self.find_index('date')
         ten_col = self.find_index('instance_id')
 
-        # def build(i):
-        #     for key in dictionary:
-        #         if str(i[ten_col]) == str(key):
-        #             return math.ceil((int(
-        #                 i[date_col]) - int(dictionary[key])) / 86400)
         def build(i):
             return math.ceil((int(i[date_col]) - int(dictionary[str(i[ten_col])])) / 86400)
         result = list(map(build, array))
