@@ -1,6 +1,6 @@
 import time
 
-import dataloader
+import data_all
 import numpy as np
 import pandas as pd
 from keras.layers import Dense
@@ -27,7 +27,7 @@ def mini_max(col):
 
 def load_data(apptype_path, filePath, num_work_day, instancepath, preprocessing=False):
     if preprocessing:
-        data, unique_ten = dataloader.dataloader(apptype_path, filePath, num_work_day, instancepath)
+        data, unique_ten = data_all.dataloader(apptype_path, filePath, num_work_day, instancepath)
         np.save('data.npy', data)
         np.save('ten.npy', unique_ten)
     else:
