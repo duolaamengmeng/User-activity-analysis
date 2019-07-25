@@ -1,16 +1,17 @@
 import time
 
-import data
+import dataloader
 import numpy as np
 import pandas as pd
 from keras.layers import Dense
 from keras.layers import Dropout
 from keras.layers.recurrent import LSTM
 from keras.models import Sequential
-from keras.optimizers import Adam
+from keras.optimizers import Adam, Adagrad
 from sklearn import preprocessing
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
+from keras import regularizers
 
 
 def mini_max(col):
@@ -26,7 +27,7 @@ def mini_max(col):
 
 def load_data(apptype_path, filePath, num_work_day, instancepath, preprocessing=False):
     if preprocessing:
-        data, unique_ten = main.dataloader(apptype_path, filePath, num_work_day, instancepath)
+        data, unique_ten = dataloader.dataloader(apptype_path, filePath, num_work_day, instancepath)
         np.save('data.npy', data)
         np.save('ten.npy', unique_ten)
     else:
@@ -67,12 +68,12 @@ def lstm_model(epoch, data, label):
     opt = Adam()
     model = Sequential()
     model.add(Dropout(0.7, input_shape=[X_train.shape[1], X_train.shape[2]]))
-    model.add(LSTM(units=256,
-                   return_sequences=True))
-    model.add(Dropout(0.7))
-    model.add(LSTM(units=32,
-                   return_sequences=False))
-    model.add(Dropout(0.7))
+    model.add(LSTM(units=128,
+                   return_sequences=False, bias_regularizer=regularizers.l2(0.01)))
+    # model.add(Dropout(0.7))
+    # model.add(LSTM(units=32,
+    #                return_sequences=False))
+    # model.add(Dropout(0.7))
     # model.add(Dropout(rate = 0.5, noise_shape=None, seed=None))
     model.add(Dense(units=32, activation='relu'))
     model.add(Dense(units=1, activation='sigmoid'))
