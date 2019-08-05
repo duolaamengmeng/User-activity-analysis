@@ -31,6 +31,7 @@ class PreProcessing:
 
     def pre_processing(self):
         date_time = []
+
         for index, i in enumerate(self.time_set):
             ts = int(i)
             date_time.append(datetime.utcfromtimestamp(ts).strftime('%Y%m%d'))
